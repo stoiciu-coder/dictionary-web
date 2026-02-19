@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Dicționar – 3 Coloane Persistente</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #888; padding: 8px; }
+        th { background: #eee; }
+    </style>
+</head>
+<body>
+
+<h2>Dicționar încărcat din CSV</h2>
+
+<input type="file" id="fileInput" accept=".csv">
+<p><i>CSV cu 3 coloane și delimitator „|”.</i></p>
+
+<table id="dictTable">
+    <thead>
+        <tr>
+            <th>Coloana 1</th>
+            <th>Coloana 2</th>
+            <th>Coloana 3</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    const STORAGE_KEY = "dictionaryData";
+
+    // ---- Încarcă din localStorage la deschiderea paginii ----
+    window.onload = function () {
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (savedData) {
+            const rows = JSON.parse(savedData);
+            renderTable(rows);
+        }
+    };
+
+    // ---- La încărcarea fiecărui CSV ----
+    document.getElementById('fileInput').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            const text = e.target.result;
+
+            // Construim datele
+            const rows = text.split(/\r?\n/)
+                .filter(r => r.trim().length > 0)
+                .map(r => r.split("|").map(col => col.trim()));
+
+            // Salvăm în localStorage (suprascriere)
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+
+            // Afișăm în tabel
+            renderTable(rows);
+        };
+
+        reader.readAsText(file, "UTF-8");
+    });
+
+    // ---- Afișare tabel ----
+    function renderTable(rows) {
+        const tbody = document.querySelector("#dictTable tbody");
+        tbody.innerHTML = "";
+
+        rows.forEach(cols => {
+            if (cols.length >= 3) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${cols[0]}</td>
+                    <td>${cols[1]}</td>
+                    <td>${cols[2]}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
