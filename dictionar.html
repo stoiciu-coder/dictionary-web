@@ -45,12 +45,11 @@ function loadCSV() {
 
 function csvToArray(text) {
     return text
-        .split(/\r\n|\n|\r/)         // suportă toate tipurile de newline
+        .split(/\r\n|\n|\r/)                 // suportă toate tipurile de newline
         .filter(line => line.trim().length > 0)
         .map(line => {
             line = line.replace("\uFEFF", "");  // elimină BOM
-            const delimiter = line.includes(";") ? ";" : ",";
-            return line.split(delimiter).map(s => s.trim());
+            return line.split("|").map(s => s.trim()); 
         });
 }
 
@@ -75,3 +74,4 @@ function renderTable(rows) {
 </body>
 
 </html>
+
