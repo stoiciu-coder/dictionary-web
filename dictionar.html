@@ -2,17 +2,18 @@
 <html lang="ro">
 <head>
 <meta charset="UTF-8">
-<title>Dicționar – Auto CSV din folderul curent</title>
-<style>
+<title>Dicționar </title>
+<!--style>
     body { font-family: Arial; margin: 20px; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #888; padding: 8px; }
     th { background: #eee; }
-</style>
+</style-->
+dictionar.css
 </head>
 
 <body>
-<h2>Dicționar încărcat automat din CSV (folderul curent)</h2>
+<h2>Dicționar </h2>
 
 <table id="dictTable">
     <thead>
@@ -26,33 +27,40 @@
 </table>
 
 <script>
+// 🔽 Numele fișierului CSV aflat în ACELAȘI director cu HTML-ul
 const CSV_FILE = "dictionary.csv";
 
-window.onload = () => loadCSV();
+// La deschiderea paginii
+window.onload = () => {
+    loadCSV();
+};
 
+// Citește fișierul CSV din calea curentă
 function loadCSV() {
     fetch(CSV_FILE)
-        .then(r => r.text())
+        .then(r => {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.text();
+        })
         .then(text => {
             const rows = csvToArray(text);
             renderTable(rows);
         })
         .catch(err => {
-            console.error("Eroare CSV:", err);
-            alert("Nu s-a putut încărca dictionary.csv");
+            console.error("Eroare la încărcarea CSV:", err);
+            alert("Nu s-a putut încărca dictionary.csv\nAsigură-te că este în același folder cu HTML-ul.");
         });
 }
 
+// Conversie CSV → array
 function csvToArray(text) {
     return text
-        .split(/\r\n|\n|\r/)                 // suportă toate tipurile de newline
+        .split(/\r?\n/)
         .filter(line => line.trim().length > 0)
-        .map(line => {
-            line = line.replace("\uFEFF", "");  // elimină BOM
-            return line.split("|").map(s => s.trim()); 
-        });
+        .map(line => line.split("|").map(col => col.trim()));
 }
 
+// Afișează tabelul
 function renderTable(rows) {
     const tbody = document.querySelector("#dictTable tbody");
     tbody.innerHTML = "";
@@ -60,18 +68,25 @@ function renderTable(rows) {
         if (cols.length >= 3) {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td>${cols[0]}</td>
-                <td>${cols[1]}</td>
-                <td>${cols[2]}</td>
+                <td>${escapeHtml(cols[0])}</td>
+                <td>${escapeHtml(cols[1])}</td>
+                <td>${escapeHtml(cols[2])}</td>
             `;
             tbody.appendChild(tr);
         }
     });
 }
+
+// Protecție HTML
+function escapeHtml(s) {
+    return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+}
 </script>
 
-
 </body>
-
 </html>
-
